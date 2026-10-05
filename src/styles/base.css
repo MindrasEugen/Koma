@@ -1,0 +1,318 @@
+/*
+ * Stili di base: reset leggero ed elementi HTML con i token. Le pagine che
+ * non hanno un componente dedicato (es. area admin) ereditano da qui un
+ * aspetto coerente senza CSS proprio.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-display);
+  font-stretch: var(--font-stretch-display);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: var(--text-2xl);
+}
+
+h2 {
+  font-size: var(--text-xl);
+}
+
+h3 {
+  font-size: var(--text-lg);
+}
+
+p {
+  margin: 0 0 var(--space-3);
+}
+
+a {
+  color: var(--color-ink);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* Focus visibile ovunque, solo da tastiera */
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* Pulsanti: vignetta piena (primario) o contornata (secondario) */
+button,
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-stretch: var(--font-stretch-display);
+  font-size: var(--text-md);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition-lift);
+}
+
+button:hover:not(:disabled),
+.button:hover {
+  transform: translate(calc(var(--lift-offset) * -1), calc(var(--lift-offset) * -1));
+  box-shadow: var(--shadow-lift);
+  color: var(--color-ink);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button-primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.button-primary:hover {
+  color: var(--color-on-accent);
+}
+
+/* Campi dei form */
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+input[type='number'] {
+  max-width: 10rem;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+}
+
+/* Tabelle (area admin): righe separate da tratti d'inchiostro */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-3);
+}
+
+th,
+td {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-ink);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+th {
+  background: var(--color-tone-bg);
+}
+
+/* Le section e gli article senza componente dedicato diventano vignette */
+main section {
+  margin-bottom: var(--space-6);
+}
+
+main section > article {
+  margin-bottom: var(--gutter);
+  padding: var(--space-4);
+  border: var(--border);
+  background: var(--color-panel);
+}
+
+code {
+  padding: 0.1em 0.35em;
+  border: 1px solid var(--color-ink);
+  background: var(--color-tone-bg);
+  font-size: 0.95em;
+  overflow-wrap: anywhere;
+}
+
+/* Testo solo per screen reader */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Link "vai al contenuto": compare solo col focus da tastiera */
+.skip-link {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 10;
+  padding: var(--space-2) var(--space-4);
+  border: var(--border);
+  background: var(--color-panel);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+.page {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) var(--space-7);
+}
+
+/* Pila verticale di elementi con spazio regolare */
+.stack > * + * {
+  margin-top: var(--space-4);
+}
+
+.muted {
+  color: var(--color-ink-muted);
+}
+
+/* Il main riceve il focus dal link "vai al contenuto": nessun anello */
+main:focus {
+  outline: none;
+}
+
+/* Form: una colonna di campi con etichetta sopra, mobile first */
+.form {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 34rem;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field label {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.hint {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+.form-error {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-accent);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.form-info {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border);
+  background: var(--color-panel);
+}
+
+/* Elenchi personali (le mie opere, rivendicazioni): una vignetta per voce */
+.panel-list {
+  display: grid;
+  gap: var(--gutter);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panel-list > li {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: var(--border);
+  background: var(--color-panel);
+}
+
+.panel-title {
+  font-family: var(--font-display);
+  font-stretch: var(--font-stretch-display);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Intestazione di pagina: titolo a sinistra, azione principale a destra */
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border);
+}
+
+.page-head h1 {
+  margin: 0;
+}

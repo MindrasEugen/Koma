@@ -1,0 +1,44 @@
+.profile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-start;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--border);
+}
+
+.avatar {
+  border: var(--border);
+  object-fit: cover;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-stretch: var(--font-stretch-display);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.name {
+  margin-bottom: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.bio {
+  max-width: 65ch;
+}
+
+.group {
+  margin-bottom: var(--space-6);
+}
+
+/* Le opere solo dichiarate stanno in una vignetta tratteggiata: la stessa
+   griglia, ma il bordo dice che la prova non c'è ancora. */
+.unverified {
+  padding: var(--space-4);
+  border: var(--border-width) dashed var(--color-ink);
+}

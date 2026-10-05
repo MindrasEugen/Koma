@@ -1,0 +1,46 @@
+.frame {
+  aspect-ratio: 5 / 7;
+  overflow: hidden;
+  border-bottom: var(--border);
+  background: var(--color-tone-bg);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Retino a mezzatinta: punti più fitti in alto, che sfumano verso il basso */
+.tone {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  padding: var(--space-3);
+  background-color: var(--color-tone-bg);
+}
+
+/* I punti stanno su un livello a parte: la maschera non tocca il titolo */
+.tone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--color-tone) 1.2px, transparent 1.6px);
+  background-size: 7px 7px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 40%, rgb(0 0 0 / 0.25));
+  mask-image: linear-gradient(to bottom, #000 40%, rgb(0 0 0 / 0.25));
+}
+
+.toneTitle {
+  position: relative;
+  padding: var(--space-1) var(--space-2);
+  border: var(--border);
+  background: var(--color-panel);
+  font-family: var(--font-display);
+  font-stretch: var(--font-stretch-display);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}

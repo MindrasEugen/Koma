@@ -1,0 +1,101 @@
+/*
+ * Design token di Koma — direzione «La tavola» (sessione 15).
+ * L'interfaccia è una pagina di fumetto: vignette con bordo d'inchiostro e
+ * angoli vivi, separate dal canalino. Bianco e nero, un solo accento (rosso
+ * timbro): il colore lo portano le copertine.
+ * Contrasti verificati (WCAG): testo ≥ 4.5:1, bordi e focus ≥ 3:1.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Colori — tema chiaro */
+  --color-paper: #f6f3ec; /* sfondo della pagina */
+  --color-panel: #ffffff; /* interno delle vignette */
+  --color-ink: #16151a; /* testo e bordi: 16.4:1 su paper */
+  --color-ink-muted: #5c5852; /* testo secondario: 6.4:1 */
+  --color-accent: #c8102e; /* rosso timbro: 5.3:1 su paper */
+  --color-on-accent: #ffffff; /* 5.9:1 su accent */
+  --color-tone: #16151a; /* punti del retino */
+  --color-tone-bg: #e9e4d8;
+
+  /* Stati (badge): testo e sfondo, tutti ≥ 4.5:1 */
+  --color-status-pending-fg: #7a4b00;
+  --color-status-pending-bg: #fcefd2;
+  --color-status-ok-fg: #1d5a2c;
+  --color-status-ok-bg: #dcefe0;
+  --color-status-bad-fg: #8f0d22;
+  --color-status-bad-bg: #fbe1e4;
+  --color-status-neutral-fg: #45413b;
+  --color-status-neutral-bg: #ebe7de;
+
+  /* Tipografia */
+  --font-display: 'Archivo Variable', 'Arial Narrow', system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-stretch-display: 72%; /* condensato: ricorda il lettering senza imitarlo */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+  --leading-tight: 1.15;
+  --leading-body: 1.55;
+
+  /* Spaziature (scala da 4 px) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --gutter: var(--space-3); /* canalino tra le vignette */
+
+  /* Bordi e raggi: angoli vivi, come le vignette */
+  --border-width: 2px;
+  --border: var(--border-width) solid var(--color-ink);
+  --radius: 0;
+
+  /* L'unico effetto: la vignetta si stacca dalla pagina (ombra netta, niente sfumatura) */
+  --lift-offset: 4px;
+  --shadow-lift: var(--lift-offset) var(--lift-offset) 0 var(--color-ink);
+  --transition-lift: transform 120ms ease-out, box-shadow 120ms ease-out;
+
+  /* Focus: anello d'accento ben visibile su ogni tema */
+  --focus-ring: 3px solid var(--color-accent);
+  --focus-offset: 2px;
+
+  /* Layout */
+  --content-max: 72rem;
+  --tap-min: 44px; /* area minima di tocco */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* L'inchiostro diventa luce, come un negativo */
+    --color-paper: #141318;
+    --color-panel: #1e1d24;
+    --color-ink: #eeeae0; /* 15.4:1 su paper */
+    --color-ink-muted: #a6a097; /* 7.1:1 */
+    --color-accent: #ff5c6c; /* 6.2:1 su paper */
+    --color-on-accent: #141318; /* 6.2:1 su accent */
+    --color-tone: #eeeae0;
+    --color-tone-bg: #2a2931;
+
+    --color-status-pending-fg: #f6c66b;
+    --color-status-pending-bg: #3a2c10;
+    --color-status-ok-fg: #8fd6a0;
+    --color-status-ok-bg: #16301d;
+    --color-status-bad-fg: #ff9aa5;
+    --color-status-bad-bg: #3b1519;
+    --color-status-neutral-fg: #cfc9bf;
+    --color-status-neutral-bg: #2a2931;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-lift: none;
+  }
+}

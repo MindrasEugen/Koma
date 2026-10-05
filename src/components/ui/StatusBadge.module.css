@@ -1,0 +1,33 @@
+.badge {
+  display: inline-block;
+  padding: 0.15em 0.6em;
+  border: var(--border-width) solid currentColor;
+  font-family: var(--font-display);
+  font-stretch: var(--font-stretch-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pending {
+  background: var(--color-status-pending-bg);
+  color: var(--color-status-pending-fg);
+}
+
+.ok {
+  background: var(--color-status-ok-bg);
+  color: var(--color-status-ok-fg);
+}
+
+.bad {
+  background: var(--color-status-bad-bg);
+  color: var(--color-status-bad-fg);
+}
+
+.neutral {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-fg);
+}

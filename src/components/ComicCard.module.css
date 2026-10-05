@@ -1,0 +1,69 @@
+/* La griglia è la tavola: il canalino tra le vignette è l'unica struttura.
+   Mobile first: due vignette per riga, come una striscia. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gutter);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 40rem) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+    gap: var(--space-4);
+  }
+}
+
+.item {
+  display: flex;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: var(--border);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: var(--transition-lift);
+}
+
+/* L'unico effetto: la vignetta si stacca dalla pagina */
+.card:hover,
+.card:focus-visible {
+  transform: translate(calc(var(--lift-offset) * -1), calc(var(--lift-offset) * -1));
+  box-shadow: var(--shadow-lift);
+  color: var(--color-ink);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-md);
+  overflow-wrap: anywhere;
+}
+
+.author,
+.meta {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.meta {
+  color: var(--color-ink-muted);
+}
+
+.badge {
+  margin-top: auto;
+  padding-top: var(--space-2);
+}

@@ -1,0 +1,84 @@
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border);
+}
+
+.head h1 {
+  margin: 0;
+}
+
+.source {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.source select {
+  width: auto;
+}
+
+/* Ricerca e filtri: in colonna su mobile, in riga da 40rem */
+.filters {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.searchForm {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.filter {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+@media (min-width: 40rem) {
+  .filters {
+    grid-template-columns: minmax(14rem, 1fr) auto auto;
+    align-items: end;
+  }
+
+  .filter select {
+    width: auto;
+    min-width: 10rem;
+  }
+}
+
+.summary {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+/* Mentre arriva la pagina successiva, quella vecchia resta visibile ma spenta */
+.stale {
+  opacity: 0.6;
+  transition: opacity 120ms;
+}
+
+.pagination {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: var(--border);
+}
+
+.pagination > :first-child {
+  justify-self: start;
+}
+
+.pagination > :last-child {
+  justify-self: end;
+}
