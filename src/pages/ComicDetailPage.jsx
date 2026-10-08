@@ -1,6 +1,8 @@
-import { Link, useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useDeleteWork, useIsAdmin } from '../hooks/useAdmin'
 import { useComic } from '../hooks/useComic'
-import { useAuth } from '../lib/authContext'
+import { useAuth } from '../lib/useAuth'
 import { useMyWorks } from '../hooks/useMyWorks'
 import {
   useAddToWatchlist,
@@ -8,7 +10,9 @@ import {
   useUpdateWatchlistEntry,
   useWatchlistEntry,
 } from '../hooks/useWatchlist'
+import { usePublishedPreviews } from '../hooks/usePreviews'
 import { ClaimSection } from '../components/ClaimSection'
+import { PreviewGallery } from '../components/PreviewGallery'
 import { ComicCover } from '../components/ui/ComicCover'
 import { StatusBadge } from '../components/ui/StatusBadge'
 import { ErrorState, LoadingText } from '../components/ui/States'
@@ -71,6 +75,72 @@ function WatchlistControls({ workId }) {
   )
 }
 
+// Anteprime approvate (solo fonte koma). Nessuna anteprima: nessuna sezione,
+// e un errore qui non deve nascondere il resto della scheda.
+function PreviewSection({ workId, title }) {
+  const { data, isError } = usePublishedPreviews(workId)
+
+  if (isError) {
+    return <p className="muted">Anteprima non disponibile al momento.</p>
+  }
+  if (!data?.length) return null
+
+  return (
+    <section aria-labelledby="preview-title">
+      <h2 id="preview-title" className={styles.panelTitle}>
+        Anteprima
+      </h2>
+      <PreviewGallery previews={data} title={title} />
+    </section>
+  )
+}
+
+// Solo admin: cancellazione definitiva con conferma in due passi. La protezione
+// vera è admin_delete_work (controllo is_admin nel database).
+function AdminDeletePanel({ workId, title }) {
+  const { data: isAdmin } = useIsAdmin()
+  const deleteMutation = useDeleteWork()
+  const navigate = useNavigate()
+  const [confirming, setConfirming] = useState(false)
+
+  if (isAdmin !== true) return null
+
+  return (
+    <section className={styles.panel} aria-labelledby="admin-title">
+      <h2 id="admin-title" className={styles.panelTitle}>
+        Amministrazione
+      </h2>
+      {confirming ? (
+        <>
+          <p>
+            Eliminare definitivamente «{title}»? Spariscono anche autori, rivendicazioni, watchlist, anteprime e
+            storico delle revisioni. Non si può annullare.
+          </p>
+          <div className="row">
+            <button
+              className="button-primary"
+              onClick={() => deleteMutation.mutate(workId, { onSuccess: () => navigate('/') })}
+              disabled={deleteMutation.isPending}
+            >
+              Conferma eliminazione
+            </button>
+            <button onClick={() => setConfirming(false)} disabled={deleteMutation.isPending}>
+              Annulla
+            </button>
+          </div>
+        </>
+      ) : (
+        <button onClick={() => setConfirming(true)}>Elimina opera</button>
+      )}
+      {deleteMutation.isError && (
+        <p className="form-error" role="alert">
+          {deleteMutation.error.message}
+        </p>
+      )}
+    </section>
+  )
+}
+
 export function ComicDetailPage() {
   const { source, id } = useParams()
   const { data, isPending, isError, error, refetch } = useComic(source, id)
@@ -88,7 +158,9 @@ export function ComicDetailPage() {
   const isKoma = source === 'koma'
   // Chi è già autore dell'opera non vede il form di rivendicazione (sessione 12).
   const isAuthor = myWorks?.some((row) => row.works?.id === id) ?? false
-  const showClaim = isKoma && !data.claimedBy && !isAuthor
+  // Opere editoriali (es. MANGA Plus): non rivendicabili, lo blocca anche open_claim.
+  const isPublisher = data.sourceType === 'publisher-official'
+  const showClaim = isKoma && !data.claimedBy && !isAuthor && !isPublisher
 
   return (
     <article className={styles.detail}>
@@ -117,6 +189,12 @@ export function ComicDetailPage() {
           <span>{typeLabel(data.type)}</span>
           <span aria-hidden="true">·</span>
           <span>{episodesLabel(data.episodeCount)}</span>
+          {isPublisher && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>Opera editoriale</span>
+            </>
+          )}
           {isKoma && data.publicationStatus && data.publicationStatus !== 'published' && (
             <StatusBadge kind="publication" value={data.publicationStatus} />
           )}
@@ -136,7 +214,9 @@ export function ComicDetailPage() {
           <p className={`${styles.synopsis} muted`}>Sinossi non ancora disponibile.</p>
         )}
 
-        {/* Koma non ospita le tavole: senza original_url il pulsante non c'è */}
+        {isKoma && !isPublisher && <PreviewSection workId={id} title={data.title} />}
+
+        {/* Koma non ospita le tavole (solo poche anteprime): senza original_url il pulsante non c'è */}
         {data.originalUrl ? (
           <a className="button button-primary" href={data.originalUrl} target="_blank" rel="noreferrer">
             Leggi sull'originale
@@ -175,6 +255,8 @@ export function ComicDetailPage() {
             )}
           </section>
         )}
+
+        {isKoma && user && <AdminDeletePanel workId={id} title={data.title} />}
       </div>
     </article>
   )

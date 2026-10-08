@@ -1,6 +1,25 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../lib/authContext'
+import { useAuth } from '../lib/useAuth'
+
+// Stesse regole impostate in Supabase Auth (con gli stessi insiemi ASCII di
+// GoTrue): il server resta l'unico controllo vero, questo evita solo di
+// scoprire i requisiti dopo l'invio.
+const LOWER = 'abcdefghijklmnopqrstuvwxyz'
+const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const DIGITS = '0123456789'
+const SYMBOLS = '!@#$%^&*()_+-=[]{};\'\\:"|<>?,./`~'
+
+function passwordProblems(password) {
+  const hasAny = (set) => [...password].some((c) => set.includes(c))
+  const missing = []
+  if (password.length < 8) missing.push('almeno 8 caratteri')
+  if (!hasAny(LOWER)) missing.push('una minuscola')
+  if (!hasAny(UPPER)) missing.push('una maiuscola')
+  if (!hasAny(DIGITS)) missing.push('un numero')
+  if (!hasAny(SYMBOLS)) missing.push('un simbolo')
+  return missing.length ? `La password deve contenere: ${missing.join(', ')}.` : null
+}
 
 // display_name passato nei metadata di signUp: il
 // trigger on_auth_user_created lo copia in aaa2.profiles.display_name
@@ -19,11 +38,20 @@ export function RegisterPage() {
     e.preventDefault()
     setError(null)
     setInfo(null)
+    const problem = passwordProblems(password)
+    if (problem) {
+      setError(problem)
+      return
+    }
     setIsSubmitting(true)
     const { data, error } = await signUp(email, password, displayName)
     setIsSubmitting(false)
     if (error) {
-      setError(error.message)
+      setError(
+        error.code === 'weak_password'
+          ? 'La password non rispetta i requisiti di sicurezza.'
+          : error.message,
+      )
       return
     }
     if (!data.session) {
@@ -59,13 +87,14 @@ export function RegisterPage() {
       <div className="field">
         <label>
           Password{' '}
+          <span className="hint">Almeno 8 caratteri, con una minuscola, una maiuscola, un numero e un simbolo.</span>
           <input
             type="password"
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
           />
         </label>
       </div>

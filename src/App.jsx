@@ -10,6 +10,7 @@ import { MyWorksPage } from './pages/MyWorksPage'
 import { MyClaimsPage } from './pages/MyClaimsPage'
 import { AdminPage } from './pages/AdminPage'
 import { AuthorPage } from './pages/AuthorPage'
+import { WorkPreviewsPage } from './pages/WorkPreviewsPage'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/watchlist" element={<WatchlistPage />} />
           <Route path="/pubblica" element={<PublishWorkPage />} />
           <Route path="/le-mie-opere" element={<MyWorksPage />} />
+          <Route path="/le-mie-opere/:id/anteprime" element={<WorkPreviewsPage />} />
           <Route path="/le-mie-rivendicazioni" element={<MyClaimsPage />} />
           <Route path="/autore/:id" element={<AuthorPage />} />
           <Route path="/admin" element={<AdminPage />} />

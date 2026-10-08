@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { useAuth } from '../lib/authContext'
+import { useAuth } from '../lib/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { useIsAdmin } from '../hooks/useAdmin'
 import styles from './Header.module.css'

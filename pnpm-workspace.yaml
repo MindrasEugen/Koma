@@ -1,0 +1,4 @@
+# Koma è la radice pnpm di se stessa: pnpm non risale alle cartelle superiori
+# in cerca di un altro workspace. Con pnpm 11 qui vanno anche le impostazioni
+# del progetto (es. allowBuilds).
+packages: []

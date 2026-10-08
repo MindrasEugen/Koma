@@ -212,3 +212,20 @@ export async function decideClaim({ claimId, approve, note }) {
     throw new Error(`Impossibile decidere la rivendicazione: ${error.message}`)
   }
 }
+
+// Cancellazione definitiva (sessione 18). admin_delete_work restituisce i
+// percorsi delle anteprime dell'opera: i file si rimuovono dallo Storage dopo,
+// perché le righe di storage.objects non si cancellano via SQL.
+export async function deleteWork(workId) {
+  const { data: paths, error } = await supabase.rpc('admin_delete_work', { p_work_id: workId })
+
+  if (error) {
+    throw new Error(`Impossibile eliminare l'opera: ${error.message}`)
+  }
+  if (paths?.length) {
+    const { error: removeError } = await supabase.storage.from('aaa3-previews').remove(paths)
+    if (removeError) {
+      throw new Error(`Opera eliminata, ma i file delle anteprime non sono stati rimossi: ${removeError.message}`)
+    }
+  }
+}

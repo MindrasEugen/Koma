@@ -68,16 +68,19 @@ export function ComicListPage() {
     <>
       <div className={styles.head}>
         <h1>Catalogo</h1>
-        <label className={styles.source}>
-          Fonte
-          <select value={sourceKey} onChange={(e) => update({ sourceKey: e.target.value, genre: '' })}>
-            {Object.keys(SOURCES).map((key) => (
-              <option key={key} value={key}>
-                {key}
-              </option>
-            ))}
-          </select>
-        </label>
+        {/* Con una sola fonte il selettore non serve (sessione 18: rimossa la fonte mock) */}
+        {Object.keys(SOURCES).length > 1 && (
+          <label className={styles.source}>
+            Fonte
+            <select value={sourceKey} onChange={(e) => update({ sourceKey: e.target.value, genre: '' })}>
+              {Object.keys(SOURCES).map((key) => (
+                <option key={key} value={key}>
+                  {key}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
 
       <div className={styles.filters}>

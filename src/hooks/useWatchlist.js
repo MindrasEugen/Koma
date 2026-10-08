@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '../lib/authContext'
+import { useAuth } from '../lib/useAuth'
 import * as watchlistApi from '../api/watchlist'
 
 export function useMyWatchlist() {

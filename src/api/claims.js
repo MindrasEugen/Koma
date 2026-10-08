@@ -71,7 +71,7 @@ export async function verifyClaim(claimId) {
       if (errorBody && errorBody.message) {
         return errorBody
       }
-    } catch (e) {
+    } catch {
       // Ignora errori di parsing JSON
     }
     throw new Error('Impossibile contattare il servizio di verifica.')

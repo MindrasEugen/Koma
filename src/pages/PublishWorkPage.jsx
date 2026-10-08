@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../lib/authContext'
+import { useAuth } from '../lib/useAuth'
 import { usePublishWork } from '../hooks/useMyWorks'
 import { typeLabel } from '../lib/labels'
 

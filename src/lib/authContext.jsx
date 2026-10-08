@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
-
-const AuthContext = createContext(undefined)
+import { AuthContext } from './authContextValue'
 
 // Il client Supabase persiste già la sessione in localStorage e la rinnova da
 // solo (comportamento di default di @supabase/supabase-js): qui serve solo
@@ -39,12 +38,4 @@ export function AuthProvider({ children }) {
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) {
-    throw new Error('useAuth deve essere usato dentro <AuthProvider>')
-  }
-  return ctx
 }

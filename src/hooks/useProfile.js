@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useAuth } from '../lib/authContext'
+import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabaseClient'
 
 // Legge aaa2."AAA3_profiles", non i metadata di auth: display_name canonico vive lì

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useAuth } from '../lib/authContext'
+import { useAuth } from '../lib/useAuth'
 import { useMyClaims, useWithdrawClaim } from '../hooks/useClaims'
 import { StatusBadge } from '../components/ui/StatusBadge'
 import { EmptyState, ErrorState, LoadingText } from '../components/ui/States'

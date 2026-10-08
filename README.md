@@ -86,17 +86,17 @@ Le sfide più istruttive sono state quelle in cui la cosa "ovvia" era sbagliata:
 
 ## Avvio in locale
 
-Requisiti: Node.js 20.19+ o 22.12+ (richiesto da Vite) e un progetto Supabase.
+Requisiti: Node.js 20.19+ o 22.12+ (richiesto da Vite), pnpm e un progetto Supabase.
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env   # inserisci URL e chiave anon del tuo progetto Supabase
-npm run dev
+pnpm dev
 ```
 
 `.env` contiene solo la chiave **anon** (pubblica per costruzione). La chiave di servizio non va mai nel frontend: la usano solo le Edge Functions, come variabile d'ambiente lato server.
 
-La fonte `mock` funziona senza database ed è utile per provare l'interfaccia. La fonte `koma` richiede lo schema `aaa2` descritto in [`docs/schema.md`](docs/schema.md).
+Il catalogo legge lo schema `aaa2` descritto in [`docs/schema.md`](docs/schema.md).
 
 La logica di verifica delle rivendicazioni ha test eseguibili con Node:
 

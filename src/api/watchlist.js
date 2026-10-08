@@ -1,4 +1,4 @@
-// Accesso a aaa2."AAA3_watchlist_entries". A differenza di mockSource/komaSource,
+// Accesso a aaa2."AAA3_watchlist_entries". A differenza di komaSource,
 // non è una "fonte di catalogo" (niente fetchComics/fetchComicById):
 // legge e scrive dati mutabili scoped all'utente autenticato, protetti da RLS
 // (profile_id = auth.uid()) lato server — i filtri qui sotto sono difensivi,

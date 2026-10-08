@@ -1,6 +1,6 @@
 # Schema dati — registrazione autori e catalogo (progettazione)
 
-> **Sessione 12 — rinomina**: tutte le tabelle e la vista hanno il prefisso `AAA3_` in maiuscolo (`aaa2."AAA3_works"`, `aaa2."AAA3_profiles"`, `aaa2."AAA3_work_authors"`, `aaa2."AAA3_claims"`, `aaa2."AAA3_watchlist_entries"`, `aaa2."AAA3_claims_view"`). I nomi vanno SEMPRE scritti tra virgolette doppie. Nel testo di questo documento le tabelle sono spesso citate col nome breve (`works`, `claims`, ...): si intende sempre la tabella `AAA3_` corrispondente. Nomi di policy, indici, vincoli, enum e funzioni NON sono cambiati.
+> **Sessione 12 — rinomina**: tutte le tabelle e la vista hanno il prefisso `AAA3_` in maiuscolo (`aaa2."AAA3_works"`, `aaa2."AAA3_profiles"`, `aaa2."AAA3_work_authors"`, `aaa2."AAA3_claims"`, `aaa2."AAA3_watchlist_entries"`, `aaa2."AAA3_claims_view"`). Tutto vive nello schema `aaa2`: dove le sezioni progettuali più vecchie (DDL, diagramma) scrivono `public.claims_view`, `public.expire_stale_claims` e simili, l'oggetto reale è `aaa2."AAA3_claims_view"`, `aaa2.expire_stale_claims` ecc. Le sezioni "Da sapere prima di toccare lo schema" qui sotto sono lo stato attuale; il resto del documento è la progettazione storica. I nomi vanno SEMPRE scritti tra virgolette doppie. Nel testo di questo documento le tabelle sono spesso citate col nome breve (`works`, `claims`, ...): si intende sempre la tabella `AAA3_` corrispondente. Nomi di policy, indici, vincoli, enum e funzioni NON sono cambiati.
 
 ## Da sapere prima di toccare lo schema
 
@@ -56,6 +56,58 @@ Il controllo è `is_admin()` dentro la funzione (admin è un attributo di riga, 
 `aaa2."AAA3_work_reviews"` (work_id, reviewer_id, decision, note, created_at). `decision` ∈ `published`, `rejected`, `hidden`, `hidden_by_author` (scritta da `self_hide_work`, così si distingue il ritiro dell'autore dalla rimozione admin). Vincolo: nota obbligatoria per `rejected`/`hidden`. Lettura: admin e autori/inserter dell'opera. Nessuna scrittura diretta. Tabella separata da `works` perché le colonne delle opere pubblicate sono leggibili da chiunque.
 
 `publication_status` ha il nuovo valore `rejected` (sessione 14): visibile solo all'autore e agli admin (le policy di lettura pubblica filtrano `published`). Un'opera rifiutata oggi non può essere ripresentata: nessuna transizione da `rejected`.
+
+### Valutazioni e raccomandazioni (sessione 17 — solo backend, nessun client)
+
+Esistono nel database ma **nessuna parte del frontend né alcuna Edge Function le usa ancora** (verificato in sessione 18: tabelle vuote, nessuna Edge Function di raccomandazione deployata).
+- `AAA3_watchlist_entries.rating`: `smallint` nullo, vincolo 1–5. null = non valutato.
+- `aaa2."AAA3_recommendations"` (profile_id, work_id, rank, reason 1–300 caratteri, fingerprint, generated_at); unico su (profile_id, work_id), FK con `ON DELETE CASCADE` su profilo e opera. Lettura: solo le proprie righe (`recommendations_select_own`). Nessuna scrittura dal client.
+- `aaa2."AAA3_recommendation_runs"` (profile_id, created_at, outcome ∈ `started|ok|no_valid_items|error`, input_tokens, output_tokens): registro delle generazioni per il limite di frequenza. RLS attiva **senza policy, di proposito**: dal client non è né leggibile né scrivibile.
+- Funzioni, tutte SECURITY DEFINER ed eseguibili **solo da `service_role`** (stesso modello di `koma-verify-claim`): `recommendation_input(uuid)` (watchlist + candidati in JSON), `register_recommendation_run(uuid)` (limite: 3 generazioni ogni 24 ore per utente, con advisory lock), `save_recommendations(...)` (al massimo 5 elementi validi, opere deduplicate), `finish_recommendation_run(bigint, text)`.
+
+### Revisione sicurezza e prestazioni (sessione 18)
+
+- `AAA3_profiles.role` **non è più leggibile** da `anon`/`authenticated`: tolto il SELECT di tabella e concesso SELECT per colonna su `id, display_name, bio, avatar_url, created_at, updated_at`. Prima chiunque poteva elencare gli admin. Il ruolo si verifica solo con `is_admin()`. Conseguenza: dal client `select('*')` su `AAA3_profiles` fallisce con 42501; vanno sempre elencate le colonne. Una nuova colonna di `AAA3_profiles` richiede un GRANT SELECT esplicito.
+- Funzioni trigger `expire_stale_claims()` e `handle_new_user()`: EXECUTE revocato a `PUBLIC`/`anon`/`authenticated` (erano esposte come RPC). Il privilegio EXECUTE di una funzione trigger si controlla solo alla `CREATE TRIGGER`: i trigger continuano a scattare (verificato in una transazione annullata).
+- Tutte le policy di aaa2 usano `(select auth.uid())` e `(select aaa2.is_admin())` invece della chiamata diretta: valutate una volta per query invece che per riga. Stessa semantica (verificato impersonando un utente normale e un admin simulato).
+- Indici sulle foreign key: `claims_reviewed_by_idx`, `recommendations_work_idx`, `watchlist_entries_work_idx`, `work_reviews_reviewer_idx`, `works_claimed_by_idx`, `works_inserted_by_idx`.
+- Avvisi dell'advisor lasciati **di proposito**: funzioni SECURITY DEFINER eseguibili da `authenticated` (è il modello di sicurezza del progetto), `search_catalog`/`is_admin` eseguibili da `anon`, due policy SELECT permissive su `AAA3_works` (separate di proposito in sessione 8), `AAA3_recommendation_runs` senza policy.
+- Anteprime delle opere: vedi la sezione successiva.
+- Fuori da aaa2, non di Koma, non toccati: `public.aaa2_delete_my_account()` (di un altro progetto, ma legge le tabelle `AAA3_`: una nuova tabella di Koma legata all'utente va aggiunta anche lì, altrimenti quella funzione può cancellare l'account da `auth.users` pur avendo dati Koma). **Già vero per `AAA3_work_previews`** (sessione 18): quella funzione non la controlla.
+
+### Opere editoriali e autore dichiarato (sessione 18)
+
+- `source_type` ha il nuovo valore **`publisher-official`**: opere di un editore lette su una piattaforma ufficiale (oggi 10 manga Shueisha su MANGA Plus, `external_source = 'MANGA Plus'`). Sono la vetrina del catalogo: **non si rivendicano** (`open_claim` le rifiuta) e la scheda non mostra rivendicazione né anteprime, ma mostra "Opera editoriale".
+- `AAA3_works.credited_author` (text, null = sconosciuto, 1–200 caratteri): nome dell'autore come dichiarato dalla fonte, **non verificato**. Nel formato normalizzato `author` = primo autore con profilo Koma, altrimenti `credited_author`, altrimenti null. Leggibile da tutti, nessun GRANT di scrittura al client.
+- Catalogo popolato in sessione 18 via SQL (`source = 'manual'`): 10 opere `publisher-official` e 73 webcomic indipendenti di Webtoons Canvas (`source_type = 'author-published'`, `external_source = 'Webtoons Canvas'`), con generi, sinossi in italiano scritte da Claude, nessuna copertina, episodi null. Generi aggiunti: `yaoi` (BL) e `yuri` (GL), assegnati leggendo le descrizioni. Le opere seed con `example.invalid` e le 4 di prova (Pepper&Carrot ecc.) sono `hidden`.
+
+- Copertine (sessione 18): `cover_url` punta all'immagine **ufficiale** sul server della piattaforma, senza copie. Webtoons: l'immagine `og:image` della serie (`swebtoon-phinf.pstatic.net`, caricabile da altri siti). Manga: copertina del volume 1 dal catalogo ufficiale VIZ Media (`dw9to29mmj727.cloudfront.net/products/<ISBN>.jpg`; Witch Watch da `dwgkfo5b3odmw.cloudfront.net`), verificata a vista. MANGA Plus non è usabile: le sue immagini hanno indirizzi firmati. Se un'immagine smette di caricarsi, `ComicCover` mostra il retino. Uso senza permesso esplicito degli autori: va rimossa su richiesta.
+
+### Cancellazione delle opere (sessione 18)
+
+- `aaa2.admin_delete_work(work_id) → text[]` (SECURITY DEFINER, EXECUTE ad `authenticated`, controllo `is_admin()`): cancella i `claim_verification_attempts` delle claim dell'opera e le `work_reviews` (le due FK **senza** `ON DELETE CASCADE`), poi l'opera; autori, claim, watchlist, raccomandazioni e anteprime vanno via a cascata. Restituisce i percorsi delle anteprime: il client li rimuove dallo Storage.
+- Storage: `aaa3_previews_admin_delete` (DELETE per admin) e `aaa3_previews_select` estesa agli admin, perché la Storage API rimuove solo i file che il chiamante "vede", e dopo la cancellazione la riga dell'anteprima non esiste più.
+- Nessun GRANT DELETE diretto su `AAA3_works`: la policy `works_delete` resta inerte.
+- UI: pannello "Amministrazione" nella scheda dell'opera, solo per admin, con conferma in due passi. Verificato in una transazione annullata: non admin respinto, cancellazione completa (claim, tentativi, revisioni, anteprime), seconda chiamata "Opera non trovata".
+
+### Anteprime delle opere (sessione 18)
+
+Koma non ospita le opere: l'autore verificato può caricare fino a 5 tavole di anteprima, visibili nella scheda dopo l'approvazione di un admin. Per il resto si legge sull'originale.
+
+- `aaa2."AAA3_work_previews"` (work_id, uploaded_by, storage_path unico, status, review_note, reviewed_by, reviewed_at, created_at). `status` riusa `publication_status` ma ammette solo `pending_review|published|rejected`; nota obbligatoria se `rejected`. FK con `ON DELETE CASCADE` su opera e profilo.
+- **Lettura** (`work_previews_select`): chiunque vede le anteprime `published` di opere `published`; gli autori dell'opera (qualunque autorship) vedono tutte le sue; admin tutto. **Nessuna scrittura diretta** (solo SELECT concesso).
+- **Bucket Storage `aaa3-previews`** (eccezione autorizzata alla regola "solo aaa2", vedi CLAUDE.md): privato, 1 MB per file, solo `image/jpeg|png|webp`. Percorso `<work_id>/<uid>/<uuid>.<ext>`. Il client legge con URL firmati (1 ora).
+  - `aaa3_previews_insert`: `bucket_id = 'aaa3-previews' and aaa2.can_upload_work_preview(name)` (percorso valido, uid corretto, autore verificato, meno di 5 anteprime non rifiutate). La funzione analizza il percorso senza cast che possano fallire, perché la policy è valutata su una tabella condivisa.
+  - `aaa3_previews_select`: proprietario del file, oppure esiste una riga di `AAA3_work_previews` visibile al chiamante con quel percorso. Così un file in revisione non è leggibile dal pubblico nemmeno conoscendone il percorso.
+  - `aaa3_previews_delete`: solo il proprietario del file.
+- Funzioni (SECURITY DEFINER, `search_path = ''`):
+  - `is_verified_author(work_id)`: autorship `claim_verified` o `admin_added`. EXECUTE revocato a tutti (la usano solo le altre funzioni).
+  - `can_upload_work_preview(object_name)`: usata dalla policy di INSERT, EXECUTE ad `authenticated`.
+  - `register_work_preview(work_id, storage_path)`: il file deve esistere nel bucket ed essere del chiamante; lock sulla riga dell'opera e limite di 5. Crea la riga in `pending_review`.
+  - `delete_work_preview(preview_id)`: solo le proprie, in qualunque stato; restituisce il percorso e il client rimuove il file (le righe di `storage.objects` non si cancellano via SQL).
+  - `admin_review_preview(preview_id, decision, note)`: `pending_review → published|rejected`, `published → rejected`; mai sulle proprie.
+- Verificato in una transazione annullata (12 casi): caricamento dell'autore verificato, blocco di non autori e di percorsi altrui, niente auto-approvazione, nota obbligatoria, invisibilità pubblica prima dell'approvazione (riga e file), visibilità dopo, limite di 5, eliminazione.
+- Limiti noti: un file caricato la cui registrazione fallisce viene rimosso dal client; se anche la rimozione fallisce resta un file orfano, invisibile perché nessuna riga lo referenzia. Le anteprime rifiutate restano nello Storage finché l'autore non le elimina. Non c'è ancora un'interfaccia admin per ritirare un'anteprima già pubblicata (la funzione lo permette).
 
 ### `CREATE OR REPLACE FUNCTION` e gli overload
 

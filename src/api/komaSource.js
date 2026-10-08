@@ -43,7 +43,9 @@ export function normalizeWork(row) {
     sourceType: row.source_type,
     type: row.type,
     title: row.title,
-    author: authors[0]?.name ?? null,
+    // Autore con profilo Koma, altrimenti il nome dichiarato dalla fonte
+    // (credited_author, non verificato: sessione 18), altrimenti sconosciuto.
+    author: authors[0]?.name ?? row.credited_author ?? null,
     authors,
     // null se manca: la UI mostra il retino, non un'immagine finta (sessione 15)
     coverUrl: row.cover_url,

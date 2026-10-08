@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useAuth } from '../lib/authContext'
+import { useAuth } from '../lib/useAuth'
 import { useHideWork, useMyWorks } from '../hooks/useMyWorks'
 import { StatusBadge } from '../components/ui/StatusBadge'
 import { EmptyState, ErrorState, LoadingText } from '../components/ui/States'
@@ -58,13 +58,19 @@ export function MyWorksPage() {
                 <StatusBadge kind="authorship" value={authorshipSource} />
               </div>
               {reviewNote(work) && <p className="muted">Nota della revisione: {reviewNote(work)}</p>}
-              {work.publication_status === 'published' && (
-                <div>
+              <div className="row">
+                {/* Anteprime: solo autorship verificate (stesso controllo di aaa2.is_verified_author) */}
+                {(authorshipSource === 'claim_verified' || authorshipSource === 'admin_added') && (
+                  <Link to={`/le-mie-opere/${work.id}/anteprime`} className="button">
+                    Anteprime
+                  </Link>
+                )}
+                {work.publication_status === 'published' && (
                   <button onClick={() => hideMutation.mutate(work.id)} disabled={hideMutation.isPending}>
                     Ritira dal catalogo
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </li>
           ))}
         </ul>

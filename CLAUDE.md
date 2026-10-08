@@ -3,8 +3,13 @@
 ## Database
 - Tutto ciò che riguarda Koma vive nello schema aaa2 del progetto Supabase
   cinema-vicino. Lo stesso progetto ospita clear-math in public: non creare,
-  modificare o leggere nulla fuori da aaa2 (eccezione: il trigger
-  on_auth_user_created su auth.users, già esistente).
+  modificare o leggere nulla fuori da aaa2 (eccezioni: il trigger
+  on_auth_user_created su auth.users, già esistente; il bucket Storage
+  privato "aaa3-previews" e le sue policy aaa3_previews_* su storage.objects,
+  autorizzati in sessione 18 per le anteprime delle opere). Ogni nuova policy
+  su storage.objects deve filtrare bucket_id = 'aaa3-previews' e non deve
+  contenere cast che possano fallire: storage.objects è condivisa con le
+  altre app del progetto.
 - Tutte le tabelle (e viste) di Koma hanno il prefisso AAA3_ in MAIUSCOLO
   (es. "AAA3_works"; le esistenti rinominate in sessione 12), dentro lo
   schema aaa2. Ogni nuova tabella segue la stessa regola. Postgres porta in

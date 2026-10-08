@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useAuth } from '../lib/authContext'
+import { useAuth } from '../lib/useAuth'
 import { useMyWatchlist } from '../hooks/useWatchlist'
 import { ComicCard, ComicGrid } from '../components/ComicCard'
 import { StatusBadge } from '../components/ui/StatusBadge'

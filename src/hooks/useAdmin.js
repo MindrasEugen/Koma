@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '../lib/authContext'
+import { useAuth } from '../lib/useAuth'
 import * as adminApi from '../api/admin'
 
 export function useIsAdmin() {
@@ -75,6 +75,19 @@ export function useDecideClaim() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin'] })
       queryClient.invalidateQueries({ queryKey: ['comics'] })
+    },
+  })
+}
+
+export function useDeleteWork() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (workId) => adminApi.deleteWork(workId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin'] })
+      queryClient.invalidateQueries({ queryKey: ['comics'] })
+      queryClient.invalidateQueries({ queryKey: ['genres'] })
+      queryClient.invalidateQueries({ queryKey: ['myWorks'] })
     },
   })
 }
