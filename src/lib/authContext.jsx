@@ -31,7 +31,10 @@ export function AuthProvider({ children }) {
       supabase.auth.signUp({
         email,
         password,
-        options: { data: { display_name: displayName } },
+        // Il progetto Supabase è condiviso con un'altra app: senza emailRedirectTo
+        // il link di conferma porterebbe al Site URL del progetto, non a Koma.
+        // L'origine deve stare nei Redirect URLs di Supabase Auth.
+        options: { data: { display_name: displayName }, emailRedirectTo: window.location.origin },
       }),
     signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
     signOut: () => supabase.auth.signOut(),
